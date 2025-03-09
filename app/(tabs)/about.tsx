@@ -36,9 +36,15 @@ export default function TabTwoScreen() {
         .
       </ThemedText>
       <ThemedText>
-        Can be used to convert a plus code to latitude and longitude.
+        Provided under MIT license, you can get the source code from{" "}
+        <Link href="https://github.com/Hasan-aga/pluscode2latlan">
+          <ThemedText type="link">GitHub</ThemedText>
+        </Link>
       </ThemedText>
-      <ThemedText>Can handle both short and long plus codes.</ThemedText>
+      <ThemedText>
+        This app can convert a plus code to latitude and longitude.
+      </ThemedText>
+      <ThemedText>It can handle both short and long plus codes.</ThemedText>
     </ParallaxScrollView>
   )
 }
