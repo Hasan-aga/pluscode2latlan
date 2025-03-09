@@ -42,7 +42,7 @@ const PlusCodeDecoder = () => {
   const fetchGeoNamesCoordinates = async (locationPart) => {
     try {
       const response = await fetch(
-        `http://api.geonames.org/searchJSON?q=${encodeURIComponent(
+        `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(
           locationPart
         )}&maxRows=10&fuzzy=0.8&username=hasanaga`
       )
