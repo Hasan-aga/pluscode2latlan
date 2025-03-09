@@ -2,10 +2,13 @@ import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { IconSymbol } from "@/components/ui/IconSymbol"
+import { useColorScheme } from "@/hooks/useColorScheme"
 import React, { useState } from "react"
 import {
+  Alert,
   Button,
   Clipboard,
+  Linking,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -14,6 +17,7 @@ import {
 import OpenLocationCode from "../../assets/openlocationlocal"
 
 const PlusCodeDecoder = () => {
+  const colorScheme = useColorScheme()
   const [plusCode, setPlusCode] = useState("")
   const [coordinates, setCoordinates] = useState(null)
   const [error, setError] = useState("")
@@ -119,6 +123,45 @@ const PlusCodeDecoder = () => {
     }
   }
 
+  const handleOpenMaps = () => {
+    if (!coordinates) return
+
+    const { latitude, longitude } = coordinates
+    const options: Array<{
+      text: string
+      onPress?: () => void
+      style?: 'cancel' | 'default' | 'destructive'
+    }> = [
+      {
+        text: 'Google Maps',
+        onPress: () => {
+          const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+          Linking.openURL(url)
+        }
+      },
+      {
+        text: 'Apple Maps',
+        onPress: () => {
+          const url = `maps://maps.apple.com/?ll=${latitude},${longitude}`
+          Linking.openURL(url)
+        }
+      },
+      {
+        text: 'Yandex Maps',
+        onPress: () => {
+          const url = `https://yandex.com/maps/?ll=${longitude},${latitude}&z=17`
+          Linking.openURL(url)
+        }
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel'
+      }
+    ]
+
+    Alert.alert('Open in Maps', 'Choose a maps application:', options)
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
@@ -137,12 +180,22 @@ const PlusCodeDecoder = () => {
         </ThemedText>
         <View style={styles.inputContainer}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { 
+              color: colorScheme === 'dark' ? '#ffffff' : '#000000',
+              backgroundColor: colorScheme === 'dark' ? '#353636' : '#ffffff',
+              borderColor: colorScheme === 'dark' ? '#555555' : 'gray'
+            }]}
             value={plusCode}
             onChangeText={setPlusCode}
             placeholder="e.g., 95FH+WMV, Mosul"
+            placeholderTextColor={colorScheme === 'dark' ? '#888888' : '#666666'}
           />
-          <TouchableOpacity onPress={handlePaste} style={styles.pasteButton}>
+          <TouchableOpacity 
+            onPress={handlePaste} 
+            style={[styles.pasteButton, {
+              backgroundColor: colorScheme === 'dark' ? '#454545' : '#e0e0e0'
+            }]}
+          >
             <ThemedText>Paste</ThemedText>
           </TouchableOpacity>
         </View>
@@ -154,9 +207,24 @@ const PlusCodeDecoder = () => {
               <ThemedText>Latitude: {coordinates.latitude}</ThemedText>
               <ThemedText>Longitude: {coordinates.longitude}</ThemedText>
             </View>
-            <TouchableOpacity onPress={handleCopy} style={styles.copyButton}>
-              <ThemedText>Copy</ThemedText>
-            </TouchableOpacity>
+            <View style={styles.buttonGroup}>
+              <TouchableOpacity 
+                onPress={handleCopy} 
+                style={[styles.copyButton, {
+                  backgroundColor: colorScheme === 'dark' ? '#454545' : '#e0e0e0'
+                }]}
+              >
+                <ThemedText>Copy</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={handleOpenMaps} 
+                style={[styles.mapButton, {
+                  backgroundColor: colorScheme === 'dark' ? '#454545' : '#e0e0e0'
+                }]}
+              >
+                <ThemedText>Open in Maps</ThemedText>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         {!isShortResult !== null && (
@@ -202,7 +270,7 @@ const styles = StyleSheet.create({
   pasteButton: {
     marginLeft: 10,
     padding: 10,
-    backgroundColor: "#ccc"
+    borderRadius: 5
   },
   resultContainer: {
     flexDirection: "row",
@@ -210,14 +278,19 @@ const styles = StyleSheet.create({
     marginTop: 20
   },
   resultTextContainer: {
-    flex: 2
+    flex: 1
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    gap: 8
   },
   copyButton: {
-    flex: 1,
-    marginLeft: 10,
-    padding: 10,
-    backgroundColor: "#ccc",
-    alignItems: "center"
+    padding: 8,
+    borderRadius: 5
+  },
+  mapButton: {
+    padding: 8,
+    borderRadius: 5
   },
   result: {
     marginTop: 20
@@ -225,6 +298,9 @@ const styles = StyleSheet.create({
   error: {
     color: "red",
     marginTop: 20
+  },
+  headerImage: {
+    opacity: 0.2
   }
 })
 
