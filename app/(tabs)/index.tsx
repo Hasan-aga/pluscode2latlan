@@ -2,6 +2,7 @@ import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { IconSymbol } from "@/components/ui/IconSymbol"
+import { Colors } from "@/constants/Colors"
 import { useColorScheme } from "@/hooks/useColorScheme"
 import React, { useState } from "react"
 import {
@@ -11,7 +12,6 @@ import {
   Linking,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   View
 } from "react-native"
 import OpenLocationCode from "../../assets/openlocationlocal"
@@ -130,45 +130,48 @@ const PlusCodeDecoder = () => {
     const options: Array<{
       text: string
       onPress?: () => void
-      style?: 'cancel' | 'default' | 'destructive'
+      style?: "cancel" | "default" | "destructive"
     }> = [
       {
-        text: 'Google Maps',
+        text: "Google Maps",
         onPress: () => {
           const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
           Linking.openURL(url)
         }
       },
       {
-        text: 'Apple Maps',
+        text: "Apple Maps",
         onPress: () => {
           const url = `maps://maps.apple.com/?ll=${latitude},${longitude}`
           Linking.openURL(url)
         }
       },
       {
-        text: 'Yandex Maps',
+        text: "Yandex Maps",
         onPress: () => {
           const url = `https://yandex.com/maps/?ll=${longitude},${latitude}&z=17`
           Linking.openURL(url)
         }
       },
       {
-        text: 'Cancel',
-        style: 'cancel'
+        text: "Cancel",
+        style: "cancel"
       }
     ]
 
-    Alert.alert('Open in Maps', 'Choose a maps application:', options)
+    Alert.alert("Open in Maps", "Choose a maps application:", options)
   }
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
+      headerBackgroundColor={{
+        light: Colors.light.background,
+        dark: Colors.dark.background
+      }}
       headerImage={
         <IconSymbol
           size={310}
-          color="#808080"
+          color={Colors[colorScheme || "light"].icon}
           name="chevron.left.forwardslash.chevron.right"
           style={styles.headerImage}
         />
@@ -180,53 +183,46 @@ const PlusCodeDecoder = () => {
         </ThemedText>
         <View style={styles.inputContainer}>
           <TextInput
-            style={[styles.input, { 
-              color: colorScheme === 'dark' ? '#ffffff' : '#000000',
-              backgroundColor: colorScheme === 'dark' ? '#353636' : '#ffffff',
-              borderColor: colorScheme === 'dark' ? '#555555' : 'gray'
-            }]}
+            style={[
+              styles.input,
+              {
+                color: Colors[colorScheme || "light"].text,
+                backgroundColor: Colors[colorScheme || "light"].background,
+                borderColor: Colors[colorScheme || "light"].icon
+              }
+            ]}
             value={plusCode}
             onChangeText={setPlusCode}
             placeholder="e.g., 95FH+WMV, Mosul"
-            placeholderTextColor={colorScheme === 'dark' ? '#888888' : '#666666'}
+            placeholderTextColor={Colors[colorScheme || "light"].icon}
           />
-          <TouchableOpacity 
-            onPress={handlePaste} 
-            style={[styles.pasteButton, {
-              backgroundColor: colorScheme === 'dark' ? '#454545' : '#e0e0e0'
-            }]}
-          >
-            <ThemedText>Paste</ThemedText>
-          </TouchableOpacity>
+
+          <Button title="paste" onPress={handlePaste} />
         </View>
         <Button title="Decode" onPress={handleDecode} />
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+        <View style={{ height: 50 }} />
+
         {coordinates && (
           <View style={styles.resultContainer}>
             <View style={styles.resultTextContainer}>
-              <ThemedText>Latitude: {coordinates.latitude}</ThemedText>
-              <ThemedText>Longitude: {coordinates.longitude}</ThemedText>
+              <ThemedText>Latitude,</ThemedText>
+              <ThemedText>Longitude</ThemedText>
             </View>
+            <View style={styles.resultTextContainer}>
+              <ThemedText>{coordinates.latitude}</ThemedText>
+              <ThemedText>{coordinates.longitude}</ThemedText>
+            </View>
+            <View style={{ height: 20 }} />
+
             <View style={styles.buttonGroup}>
-              <TouchableOpacity 
-                onPress={handleCopy} 
-                style={[styles.copyButton, {
-                  backgroundColor: colorScheme === 'dark' ? '#454545' : '#e0e0e0'
-                }]}
-              >
-                <ThemedText>Copy</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={handleOpenMaps} 
-                style={[styles.mapButton, {
-                  backgroundColor: colorScheme === 'dark' ? '#454545' : '#e0e0e0'
-                }]}
-              >
-                <ThemedText>Open in Maps</ThemedText>
-              </TouchableOpacity>
+              <Button title="Copy" onPress={handleCopy} />
+              <Button title="Open in Maps" onPress={handleOpenMaps} />
             </View>
           </View>
         )}
+        <View style={{ height: 50 }} />
+
         {!isShortResult !== null && (
           <ThemedText style={styles.result}>
             Is Short: {isShortResult ? "Yes" : "No"}
@@ -273,15 +269,18 @@ const styles = StyleSheet.create({
     borderRadius: 5
   },
   resultContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "column",
+    alignItems: "flex-start",
     marginTop: 20
   },
   resultTextContainer: {
-    flex: 1
+    flexDirection: "row",
+    gap: 8
   },
   buttonGroup: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignSelf: "flex-end",
     gap: 8
   },
   copyButton: {
@@ -296,7 +295,7 @@ const styles = StyleSheet.create({
     marginTop: 20
   },
   error: {
-    color: "red",
+    color: "#FF0000",
     marginTop: 20
   },
   headerImage: {
