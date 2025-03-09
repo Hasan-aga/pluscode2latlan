@@ -6,20 +6,19 @@ import { Colors } from "@/constants/Colors"
 import { useColorScheme } from "@/hooks/useColorScheme"
 import React, { useState } from "react"
 import {
-  Alert,
   Button,
   Clipboard,
-  Linking,
   StyleSheet,
   TextInput,
   View
 } from "react-native"
 import OpenLocationCode from "../../assets/openlocationlocal"
+import { MapsModal } from "@/components/MapsModal"
 
 const PlusCodeDecoder = () => {
   const colorScheme = useColorScheme()
   const [plusCode, setPlusCode] = useState("")
-  const [coordinates, setCoordinates] = useState(null)
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null)
   const [error, setError] = useState("")
   const [isShortResult, setIsShortResult] = useState(null)
   const [isValidResult, setIsValidResult] = useState(null)
@@ -123,43 +122,11 @@ const PlusCodeDecoder = () => {
     }
   }
 
+  const [isMapModalVisible, setIsMapModalVisible] = useState(false)
+
   const handleOpenMaps = () => {
     if (!coordinates) return
-
-    const { latitude, longitude } = coordinates
-    const options: Array<{
-      text: string
-      onPress?: () => void
-      style?: "cancel" | "default" | "destructive"
-    }> = [
-      {
-        text: "Google Maps",
-        onPress: () => {
-          const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
-          Linking.openURL(url)
-        }
-      },
-      {
-        text: "Apple Maps",
-        onPress: () => {
-          const url = `maps://maps.apple.com/?ll=${latitude},${longitude}`
-          Linking.openURL(url)
-        }
-      },
-      {
-        text: "Yandex Maps",
-        onPress: () => {
-          const url = `https://yandex.com/maps/?ll=${longitude},${latitude}&z=17`
-          Linking.openURL(url)
-        }
-      },
-      {
-        text: "Cancel",
-        style: "cancel"
-      }
-    ]
-
-    Alert.alert("Open in Maps", "Choose a maps application:", options)
+    setIsMapModalVisible(true)
   }
 
   return (
@@ -239,6 +206,13 @@ const PlusCodeDecoder = () => {
           </ThemedText>
         )}
       </ThemedView>
+      {coordinates && (
+        <MapsModal
+          visible={isMapModalVisible}
+          onClose={() => setIsMapModalVisible(false)}
+          coordinates={coordinates}
+        />
+      )}
     </ParallaxScrollView>
   )
 }
