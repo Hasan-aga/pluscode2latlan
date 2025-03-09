@@ -16,6 +16,21 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
     npx expo start
    ```
 
+## Build
+
+to build an apk, sign in to expo
+
+```
+eas login
+```
+
+then run this command
+
+```
+eas build -p android --profile preview
+```
+
 ## development plan
 
-if code has "," we need to separate.
+implement convert lat lng to plus code.
+improve ui ux
