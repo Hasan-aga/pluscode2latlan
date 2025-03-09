@@ -19,7 +19,7 @@ export default function TabTwoScreen() {
       headerImage={
         <IconSymbol
           size={310}
-          color={Colors[colorScheme || "light"].icon}
+          color="#ffff"
           name="info.circle.fill"
           style={styles.headerImage}
         />
