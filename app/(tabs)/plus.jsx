@@ -21,19 +21,69 @@ const PlusCodeDecoder = () => {
   const [isValidResult, setIsValidResult] = useState(null)
   const [angleCheckResult, setAngleCheckResult] = useState(null)
 
-  const handleDecode = () => {
-    try {
-      // Baghdad coordinates as reference point for Iraq
-      const IRAQ_LAT = 33.3152;
-      const IRAQ_LNG = 44.3661;
+  const extractLocationInfo = (input) => {
+    const parts = input.split(',').map(part => part.trim());
+    if (parts.length > 1) {
+      return {
+        plusCode: parts[0],
+        locationParts: parts.slice(1)
+      };
+    }
+    return {
+      plusCode: input,
+      locationParts: []
+    };
+  };
 
-      let codeToUse = plusCode;
-      const isShortCode = !OpenLocationCode.isFull(plusCode);
+  const fetchGeoNamesCoordinates = async (locationPart) => {
+    try {
+      const response = await fetch(
+        `http://api.geonames.org/searchJSON?q=${encodeURIComponent(locationPart)}&maxRows=10&fuzzy=0.8&username=hasanaga`
+      );
+      const data = await response.json();
+      
+      if (data.geonames && data.geonames.length > 0) {
+        const location = data.geonames[0];
+        return {
+          latitude: parseFloat(location.lat),
+          longitude: parseFloat(location.lng)
+        };
+      }
+      return null; // Return null instead of throwing error to allow trying next part
+    } catch (error) {
+      return null; // Return null on API errors to allow trying next part
+    }
+  };
+
+  const findCityCoordinates = async (locationParts) => {
+    for (const part of locationParts) {
+      const coords = await fetchGeoNamesCoordinates(part);
+      if (coords) {
+        return coords;
+      }
+    }
+    throw new Error('No valid city found in the location string');
+  };
+
+  const handleDecode = async () => {
+    try {
+      const { plusCode: code, locationParts } = extractLocationInfo(plusCode);
+      const isShortCode = !OpenLocationCode.isFull(code);
       setIsShortResult(isShortCode);
       
-      // If it's a short code, recover the full code using Iraq as reference
-      if (isShortCode && OpenLocationCode.isValid(plusCode)) {
-        codeToUse = OpenLocationCode.recoverNearest(plusCode, IRAQ_LAT, IRAQ_LNG);
+      let codeToUse = code;
+      // If it's a short code and we have location parts, try to find a valid city
+      if (isShortCode && OpenLocationCode.isValid(code)) {
+        if (locationParts.length === 0) {
+          throw new Error('Location information is required for short plus codes (e.g., "VX63+22F, Qazi Mohammad Road, Duhok")');
+        }
+        
+        const referenceCoords = await findCityCoordinates(locationParts);
+        codeToUse = OpenLocationCode.recoverNearest(
+          code,
+          referenceCoords.latitude,
+          referenceCoords.longitude
+        );
       }
 
       const decoded = OpenLocationCode.decode(codeToUse);
@@ -42,8 +92,8 @@ const PlusCodeDecoder = () => {
         longitude: decoded.longitudeCenter
       });
       
-      setIsValidResult(OpenLocationCode.isValid(plusCode));
-      setAngleCheckResult(OpenLocationCode.isValidLongitude(plusCode));
+      setIsValidResult(OpenLocationCode.isValid(code));
+      setAngleCheckResult(OpenLocationCode.isValidLongitude(code));
       setError("");
     } catch (err) {
       setError(`Error \n${err}`);
@@ -62,7 +112,7 @@ const PlusCodeDecoder = () => {
   const handleCopy = () => {
     if (coordinates) {
       Clipboard.setString(
-        `Latitude: ${coordinates.latitude}, Longitude: ${coordinates.longitude}`
+        `${coordinates.latitude},${coordinates.longitude}`
       )
     }
   }
@@ -88,7 +138,7 @@ const PlusCodeDecoder = () => {
             style={styles.input}
             value={plusCode}
             onChangeText={setPlusCode}
-            placeholder="e.g., 7FG8VQC9+G6"
+            placeholder="e.g., 95FH+WMV, Mosul"
           />
           <TouchableOpacity onPress={handlePaste} style={styles.pasteButton}>
             <ThemedText>Paste</ThemedText>
@@ -144,7 +194,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: "gray",
     borderWidth: 1,
-    paddingHorizontal: 10
+    paddingHorizontal: 10,
+    marginRight: 5
   },
   pasteButton: {
     marginLeft: 10,
