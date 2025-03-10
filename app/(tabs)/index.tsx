@@ -9,6 +9,7 @@ import { useColorScheme } from "@/hooks/useColorScheme"
 import React, { useState } from "react"
 import { Clipboard, StyleSheet, TextInput, View } from "react-native"
 import OpenLocationCode from "../../assets/openlocationlocal"
+import { searchGeonames } from "../../utils/db"
 
 const PlusCodeDecoder = () => {
   const colorScheme = useColorScheme()
@@ -38,23 +39,14 @@ const PlusCodeDecoder = () => {
 
   const fetchGeoNamesCoordinates = async (locationPart) => {
     try {
-      const response = await fetch(
-        `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(
-          locationPart
-        )}&maxRows=10&fuzzy=0.8&username=hasanaga`
-      )
-      const data = await response.json()
-
-      if (data.geonames && data.geonames.length > 0) {
-        const location = data.geonames[0]
-        return {
-          latitude: parseFloat(location.lat),
-          longitude: parseFloat(location.lng)
-        }
+      const result = await searchGeonames(locationPart)
+      if (result) {
+        return result
       }
-      return null // Return null instead of throwing error to allow trying next part
+      return null
     } catch (error) {
-      return null // Return null on API errors to allow trying next part
+      console.error("Error searching Geonames:", error)
+      return null
     }
   }
 
