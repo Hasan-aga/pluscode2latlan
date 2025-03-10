@@ -44,7 +44,7 @@ export const MapsModal = ({ visible, onClose, coordinates }: MapsModalProps) => 
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <TouchableOpacity style={styles.overlay} onPress={onClose} activeOpacity={1}>
         <ThemedView style={styles.modalContent}>
           <ThemedText style={styles.title}>Open in Maps</ThemedText>
           <TouchableOpacity
@@ -74,7 +74,7 @@ export const MapsModal = ({ visible, onClose, coordinates }: MapsModalProps) => 
             </ThemedText>
           </TouchableOpacity>
         </ThemedView>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 };

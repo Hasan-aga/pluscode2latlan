@@ -1,3 +1,5 @@
+import { CustomButton } from "@/components/CustomButton"
+import { MapsModal } from "@/components/MapsModal"
 import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
@@ -5,20 +7,16 @@ import { IconSymbol } from "@/components/ui/IconSymbol"
 import { Colors } from "@/constants/Colors"
 import { useColorScheme } from "@/hooks/useColorScheme"
 import React, { useState } from "react"
-import {
-  Button,
-  Clipboard,
-  StyleSheet,
-  TextInput,
-  View
-} from "react-native"
+import { Clipboard, StyleSheet, TextInput, View } from "react-native"
 import OpenLocationCode from "../../assets/openlocationlocal"
-import { MapsModal } from "@/components/MapsModal"
 
 const PlusCodeDecoder = () => {
   const colorScheme = useColorScheme()
   const [plusCode, setPlusCode] = useState("")
-  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number
+    longitude: number
+  } | null>(null)
   const [error, setError] = useState("")
   const [isShortResult, setIsShortResult] = useState(null)
   const [isValidResult, setIsValidResult] = useState(null)
@@ -164,9 +162,9 @@ const PlusCodeDecoder = () => {
             placeholderTextColor={Colors[colorScheme || "light"].icon}
           />
 
-          <Button title="paste" onPress={handlePaste} />
+          <CustomButton title="paste" onPress={handlePaste} />
         </View>
-        <Button title="Decode" onPress={handleDecode} />
+        <CustomButton title="Decode" onPress={handleDecode} />
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         <View style={{ height: 50 }} />
 
@@ -183,8 +181,8 @@ const PlusCodeDecoder = () => {
             <View style={{ height: 20 }} />
 
             <View style={styles.buttonGroup}>
-              <Button title="Copy" onPress={handleCopy} />
-              <Button title="Open in Maps" onPress={handleOpenMaps} />
+              <CustomButton title="Copy" onPress={handleCopy} />
+              <CustomButton title="Open in Maps" onPress={handleOpenMaps} />
             </View>
           </View>
         )}
@@ -232,10 +230,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    marginRight: 5
+    borderBottomWidth: 1,
+    paddingHorizontal: 15,
+    marginRight: 10
   },
   pasteButton: {
     marginLeft: 10,
