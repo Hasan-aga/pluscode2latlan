@@ -153,7 +153,7 @@ const PlusCodeDecoder = () => {
               {
                 color: Colors[colorScheme || "light"].text,
                 backgroundColor: Colors[colorScheme || "light"].background,
-                borderColor: Colors[colorScheme || "light"].icon
+                borderColor: Colors[colorScheme || "light"].tint
               }
             ]}
             value={plusCode}
