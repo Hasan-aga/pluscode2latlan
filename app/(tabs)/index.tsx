@@ -7,7 +7,8 @@ import { IconSymbol } from "@/components/ui/IconSymbol"
 import { Colors } from "@/constants/Colors"
 import { useColorScheme } from "@/hooks/useColorScheme"
 import React, { useState } from "react"
-import { Clipboard, StyleSheet, TextInput, View } from "react-native"
+import { Clipboard, StyleSheet, TextInput, View, Pressable } from "react-native"
+import { MaterialIcons } from "@expo/vector-icons"
 import OpenLocationCode from "../../assets/openlocationlocal"
 import { searchGeonames } from "../../utils/db"
 
@@ -129,7 +130,7 @@ const PlusCodeDecoder = () => {
         <IconSymbol
           size={310}
           color={Colors[colorScheme || "light"].icon}
-          name="chevron.left.forwardslash.chevron.right"
+          name="location.circle.fill"
           style={styles.headerImage}
         />
       }
@@ -139,20 +140,27 @@ const PlusCodeDecoder = () => {
           Enter Plus Code:
         </ThemedText>
         <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                color: Colors[colorScheme || "light"].text,
-                backgroundColor: Colors[colorScheme || "light"].background,
-                borderColor: Colors[colorScheme || "light"].tint
-              }
-            ]}
-            value={plusCode}
-            onChangeText={setPlusCode}
-            placeholder="e.g., 95FH+WMV, Mosul"
-            placeholderTextColor={Colors[colorScheme || "light"].icon}
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  color: Colors[colorScheme || "light"].text,
+                  backgroundColor: Colors[colorScheme || "light"].background,
+                  borderColor: Colors[colorScheme || "light"].tint
+                }
+              ]}
+              value={plusCode}
+              onChangeText={setPlusCode}
+              placeholder="e.g., 95FH+WMV, Mosul"
+              placeholderTextColor={Colors[colorScheme || "light"].icon}
+            />
+            {plusCode ? (
+              <Pressable onPress={() => setPlusCode('')} style={styles.clearButton}>
+                <MaterialIcons name="clear" size={24} color={Colors[colorScheme || "light"].text} />
+              </Pressable>
+            ) : null}
+          </View>
 
           <CustomButton title="paste" onPress={handlePaste} />
         </View>
@@ -210,6 +218,18 @@ const PlusCodeDecoder = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20
+  },
+  inputWrapper: {
+    flex: 1,
+    flexDirection: 'row' as const,
+    alignItems: 'center',
+    marginRight: 10,
+    position: 'relative'
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 8,
+    top: 8
   },
   label: {
     marginBottom: 10
