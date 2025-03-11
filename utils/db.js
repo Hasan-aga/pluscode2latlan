@@ -108,13 +108,16 @@ async function searchGeonames(cityName) {
     await db.execAsync("PRAGMA quick_check;")
 
     // Use parameterized query with proper escaping
+
     const sanitizedInput = cityName.replace(/[%_]/g, "\\$&")
+    const capitalizedInput =
+      sanitizedInput.charAt(0).toUpperCase() + sanitizedInput.slice(1)
     const result = await db.getFirstAsync(
-      `SELECT name, latitude, longitude 
-         FROM geonames 
-         WHERE name LIKE ? ESCAPE '\\' COLLATE NOCASE 
-         LIMIT 1;`,
-      [`%${sanitizedInput}%`]
+      `select g.name, g.latitude, g.longitude
+      from geonames g
+      join alternative_names a on g.id=a.geoname_id
+      where g.name like ? or a.alternative_name like ?`,
+      [`${sanitizedInput}`, `${sanitizedInput}`]
     )
 
     return result
