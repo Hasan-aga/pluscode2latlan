@@ -11,7 +11,7 @@ import { useEffect } from "react"
 import "react-native-reanimated"
 
 import { useColorScheme } from "@/hooks/useColorScheme"
-import { copyDatabase } from "@/utils/db"
+import { checkDbTables, copyDatabase } from "@/utils/db"
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -23,10 +23,27 @@ export default function RootLayout() {
   })
 
   useEffect(() => {
-    if (loaded) {
-      copyDatabase()
-      SplashScreen.hideAsync()
+    const initializeApp = async () => {
+      if (loaded) {
+        try {
+          // Step 1: Copy the database
+          await copyDatabase()
+
+          // Step 2: Check the database tables
+          await checkDbTables()
+
+          // Step 3: Hide the splash screen after everything is ready
+          await SplashScreen.hideAsync()
+        } catch (error) {
+          console.error("Error during initialization:", error)
+          // Still hide splash screen even if there was an error
+          await SplashScreen.hideAsync()
+        }
+      }
     }
+
+    // Call the async function
+    initializeApp()
   }, [loaded])
 
   if (!loaded) {

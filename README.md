@@ -32,5 +32,6 @@ eas build -p android --profile preview
 
 ## development plan
 
+zip and decompress db
 implement convert lat lng to plus code.
 improve ui ux
