@@ -33,5 +33,6 @@ eas build -p android --profile preview
 ## development plan
 
 zip and decompress db
+prevent text input text flowing under x mark
 implement convert lat lng to plus code.
 improve ui ux
