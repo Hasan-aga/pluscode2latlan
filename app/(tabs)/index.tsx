@@ -178,9 +178,11 @@ const PlusCodeDecoder = () => {
             ) : null}
           </View>
 
-          <CustomButton title="paste" onPress={handlePaste} />
+          <CustomButton 
+            title={plusCode ? "Decode" : "Paste"} 
+            onPress={plusCode ? handleDecode : handlePaste} 
+          />
         </View>
-        <CustomButton title="Decode" onPress={handleDecode} />
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         <View style={{ height: 50 }} />
 
