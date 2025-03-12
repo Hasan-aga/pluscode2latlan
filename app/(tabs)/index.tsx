@@ -145,9 +145,6 @@ const PlusCodeDecoder = () => {
       }
     >
       <ThemedView style={styles.container}>
-        <ThemedText style={styles.label} type="default">
-          Enter Plus Code:
-        </ThemedText>
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -161,7 +158,7 @@ const PlusCodeDecoder = () => {
               ]}
               value={plusCode}
               onChangeText={setPlusCode}
-              placeholder="e.g., 95FH+WMV, Mosul"
+              placeholder="Enter Plus Code here"
               placeholderTextColor={Colors[colorScheme || "light"].icon}
             />
             {plusCode ? (
@@ -178,9 +175,9 @@ const PlusCodeDecoder = () => {
             ) : null}
           </View>
 
-          <CustomButton 
-            title={plusCode ? "Decode" : "Paste"} 
-            onPress={plusCode ? handleDecode : handlePaste} 
+          <CustomButton
+            icon={plusCode ? "checkmark.circle.fill" : "doc.on.clipboard.fill"}
+            onPress={plusCode ? handleDecode : handlePaste}
           />
         </View>
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}

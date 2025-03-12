@@ -8,12 +8,14 @@ import {
   ViewStyle
 } from "react-native"
 import { ThemedText } from "./ThemedText"
+import { IconSymbol } from "./ui/IconSymbol"
 
 interface CustomButtonProps {
+  icon?: React.ComponentProps<typeof IconSymbol>["name"]
   onPress: () => void
   title: string
   style?: StyleProp<ViewStyle>
-  textStyle?: StyleProp<ViewStyle>
+  textStyle?: StyleProp<TextStyle>
   variant?: "default" | "cancel"
 }
 
@@ -21,6 +23,7 @@ export const CustomButton = ({
   onPress,
   title,
   style,
+  icon,
   textStyle,
   variant = "default"
 }: CustomButtonProps) => {
@@ -42,7 +45,14 @@ export const CustomButton = ({
       ]}
       onPress={onPress}
     >
-      <ThemedText>{title}</ThemedText>
+      {icon && (
+        <IconSymbol
+          name={icon}
+          size={20}
+          color={Colors[colorScheme || "light"].text}
+        />
+      )}
+      {title && <ThemedText style={textStyle}>{title}</ThemedText>}
     </TouchableOpacity>
   )
 }
