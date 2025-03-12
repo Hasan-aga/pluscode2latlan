@@ -6,9 +6,9 @@ import { ThemedView } from "@/components/ThemedView"
 import { IconSymbol } from "@/components/ui/IconSymbol"
 import { Colors } from "@/constants/Colors"
 import { useColorScheme } from "@/hooks/useColorScheme"
-import React, { useState } from "react"
-import { Clipboard, StyleSheet, TextInput, View, Pressable } from "react-native"
 import { MaterialIcons } from "@expo/vector-icons"
+import React, { useState } from "react"
+import { Clipboard, Pressable, StyleSheet, TextInput, View } from "react-native"
 import OpenLocationCode from "../../assets/openlocationlocal"
 import { searchGeonames } from "../../utils/db"
 
@@ -20,16 +20,25 @@ const PlusCodeDecoder = () => {
     longitude: number
   } | null>(null)
   const [error, setError] = useState("")
-  const [isShortResult, setIsShortResult] = useState(null)
-  const [isValidResult, setIsValidResult] = useState(null)
-  const [angleCheckResult, setAngleCheckResult] = useState(null)
+  const [isShortResult, setIsShortResult] = useState<boolean | null>(null)
+  const [isValidResult, setIsValidResult] = useState<boolean | null>(null)
+  const [angleCheckResult, setAngleCheckResult] = useState<boolean | null>(null)
 
-  const extractLocationInfo = (input) => {
-    const parts = input.split(",").map((part) => part.trim())
+  const extractLocationInfo = (input: string) => {
+    // Split on common delimiters including Arabic comma and normalize whitespace
+    const parts = input.split(/[,;:،]/).map((part) => part.trim())
     if (parts.length > 1) {
       return {
         plusCode: parts[0],
-        locationParts: parts.slice(1)
+        locationParts: parts.slice(1).filter((part) => part.length > 0) // Filter out empty parts
+      }
+    }
+    // If no delimiters found, try splitting on whitespace
+    const spaceParts = input.split(/\s+/)
+    if (spaceParts.length > 1) {
+      return {
+        plusCode: spaceParts[0],
+        locationParts: spaceParts.slice(1).filter((part) => part.length > 0)
       }
     }
     return {
@@ -38,7 +47,7 @@ const PlusCodeDecoder = () => {
     }
   }
 
-  const fetchGeoNamesCoordinates = async (locationPart) => {
+  const fetchGeoNamesCoordinates = async (locationPart: string) => {
     try {
       const result = await searchGeonames(locationPart)
       if (result) {
@@ -51,7 +60,7 @@ const PlusCodeDecoder = () => {
     }
   }
 
-  const findCityCoordinates = async (locationParts) => {
+  const findCityCoordinates = async (locationParts: string[]) => {
     for (const part of locationParts) {
       const coords = await fetchGeoNamesCoordinates(part)
       if (coords) {
@@ -156,8 +165,15 @@ const PlusCodeDecoder = () => {
               placeholderTextColor={Colors[colorScheme || "light"].icon}
             />
             {plusCode ? (
-              <Pressable onPress={() => setPlusCode('')} style={styles.clearButton}>
-                <MaterialIcons name="clear" size={24} color={Colors[colorScheme || "light"].text} />
+              <Pressable
+                onPress={() => setPlusCode("")}
+                style={styles.clearButton}
+              >
+                <MaterialIcons
+                  name="clear"
+                  size={24}
+                  color={Colors[colorScheme || "light"].text}
+                />
               </Pressable>
             ) : null}
           </View>
@@ -221,13 +237,13 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    flexDirection: 'row' as const,
-    alignItems: 'center',
+    flexDirection: "row" as const,
+    alignItems: "center",
     marginRight: 10,
-    position: 'relative'
+    position: "relative"
   },
   clearButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 8,
     top: 8
   },
