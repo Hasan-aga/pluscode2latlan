@@ -1,46 +1,125 @@
 import { Asset } from "expo-asset"
 import * as FileSystem from "expo-file-system"
 import * as SQLite from "expo-sqlite"
+import JSZip from "jszip"
+import { unzip } from "react-native-zip-archive"
 
 const DB_NAME = "geonames.db"
 const DB_PATH = FileSystem.documentDirectory + "SQLite/" + DB_NAME
+const ZIPPED_DB_NAME = "geonames.zip"
+const TEMP_ZIP_PATH = `${FileSystem.documentDirectory}temp_${ZIPPED_DB_NAME}`
 
-async function copyDatabase() {
+async function unzipDatabase() {
   const { exists } = await FileSystem.getInfoAsync(DB_PATH)
+
   if (!exists) {
     try {
-      console.log("Copying database...")
+      console.log("Extracting zipped database...")
 
+      // Create SQLite directory if it doesn't exist
       await FileSystem.makeDirectoryAsync(
         FileSystem.documentDirectory + "SQLite",
         { intermediates: true }
       )
 
-      const asset = Asset.fromModule(require(`../assets/db/${DB_NAME}`))
-      console.log("Downloading database asset", asset)
+      // Get the zip file from assets
+      const asset = Asset.fromModule(require(`../assets/db/${ZIPPED_DB_NAME}`))
+      console.log("Loading zipped database asset", asset)
 
-      // First, make sure the asset is downloaded locally
-      if (!asset.downloaded) {
-        await Asset.loadAsync(require(`../assets/db/${DB_NAME}`))
+      // Make sure the asset is downloaded locally
+      await asset.downloadAsync()
+
+      // Now we have a file URI we can work with
+      if (!asset.localUri) {
+        throw new Error("Could not get local URI for asset")
       }
 
-      // Now use localUri instead of uri for iOS
-      const sourceUri = asset.localUri || asset.uri
+      // Get the local URI of the zip file
+      const zipUri = asset.localUri || asset.uri
 
+      // First copy the zip to a temporary location (needs to be on the filesystem)
       await FileSystem.copyAsync({
-        from: sourceUri,
-        to: DB_PATH
+        from: zipUri,
+        to: TEMP_ZIP_PATH
       })
 
-      // Verify the copy worked
-      const copiedInfo = await FileSystem.getInfoAsync(DB_NAME)
-      if (!copiedInfo.exists || copiedInfo.size === 0) {
-        throw new Error("Database copy failed - file is missing or empty")
+      // Extract directly to the SQLite directory
+      const targetDir = FileSystem.documentDirectory + "SQLite"
+      await unzip(TEMP_ZIP_PATH, targetDir)
+
+      // Clean up the temporary zip file
+      await FileSystem.deleteAsync(TEMP_ZIP_PATH)
+
+      // Verify the extraction worked
+      const extractedInfo = await FileSystem.getInfoAsync(DB_PATH)
+      if (!extractedInfo.exists || extractedInfo.size === 0) {
+        throw new Error("Database extraction failed - file is missing or empty")
       }
 
-      console.log("Database copied successfully")
+      console.log("Database extracted successfully")
     } catch (error) {
-      console.log("Error copying database:", error)
+      console.log("Error extracting database:", error)
+    }
+  }
+}
+
+async function unzipDatabaseWithJsZip() {
+  const { exists } = await FileSystem.getInfoAsync(DB_PATH)
+
+  if (!exists) {
+    try {
+      console.log("Extracting zipped database...")
+
+      // Create SQLite directory if it doesn't exist
+      await FileSystem.makeDirectoryAsync(
+        FileSystem.documentDirectory + "SQLite",
+        { intermediates: true }
+      )
+
+      // Get the zip file from assets
+      const asset = Asset.fromModule(require(`../assets/db/${ZIPPED_DB_NAME}`))
+      console.log("Loading zipped database asset", asset)
+
+      // Make sure the asset is downloaded locally
+      await asset.downloadAsync()
+
+      // Now we have a file URI we can work with
+      if (!asset.localUri) {
+        throw new Error("Could not get local URI for asset")
+      }
+      // Get the local URI of the zip file
+      const zipUri = asset.localUri || asset.uri
+
+      // Read the zip file content
+      const zipData = await FileSystem.readAsStringAsync(zipUri, {
+        encoding: FileSystem.EncodingType.Base64
+      })
+
+      // Parse the zip data
+      const jszip = new JSZip()
+      const zip = await jszip.loadAsync(zipData, { base64: true })
+
+      // Extract the database file directly to the target location
+      const dbFile = zip.file(DB_NAME)
+      if (!dbFile) {
+        throw new Error(`${DB_NAME} not found in zip file`)
+      }
+
+      // Get the content as ArrayBuffer and write it directly to the destination
+      const content = await dbFile.async("base64")
+      await FileSystem.writeAsStringAsync(DB_PATH, content, {
+        encoding: FileSystem.EncodingType.Base64
+      })
+
+      // Verify the extraction worked
+      const extractedInfo = await FileSystem.getInfoAsync(DB_PATH)
+      if (!extractedInfo.exists || extractedInfo.size === 0) {
+        throw new Error("Database extraction failed - file is missing or empty")
+      }
+
+      console.log("Database extracted successfully")
+    } catch (error) {
+      console.log("Error extracting database:", error)
     }
   }
 }
@@ -129,4 +208,4 @@ async function searchGeonames(cityName) {
   }
 }
 
-export { checkDbTables, copyDatabase, searchGeonames }
+export { checkDbTables, searchGeonames, unzipDatabase, unzipDatabaseWithJsZip }

@@ -6,6 +6,7 @@ const config = getDefaultConfig(__dirname)
 config.resolver.assetExts = [
   ...config.resolver.assetExts,
   "db",
+  "zip",
   "sqlite",
   "mp3",
   "ttf",
