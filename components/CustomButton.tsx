@@ -59,10 +59,11 @@ export const CustomButton = ({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 5,
+    paddingVertical: 10,
     paddingHorizontal: 15,
     alignItems: "center",
-    borderWidth: 1
+    borderWidth: 1,
+    borderRadius: 15
   },
   cancelButton: {
     borderBottomWidth: 0,
