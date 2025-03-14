@@ -11,7 +11,7 @@ import { useEffect } from "react"
 import "react-native-reanimated"
 
 import { useColorScheme } from "@/hooks/useColorScheme"
-import { checkDbTables, unzipDatabaseWithJsZip } from "@/utils/db"
+import { checkDbTables, unzipDatabaseUsingNative } from "@/utils/db"
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -27,7 +27,7 @@ export default function RootLayout() {
       if (loaded) {
         try {
           // Step 1: Copy the database
-          await unzipDatabaseWithJsZip()
+          await unzipDatabaseUsingNative()
 
           // Step 2: Check the database tables
           await checkDbTables()
