@@ -49,7 +49,7 @@ export const CustomButton = ({
         <IconSymbol
           name={icon}
           size={20}
-          color={Colors[colorScheme || "light"].text}
+          color={Colors[colorScheme || "light"].icon} // Updated to use Colors for icon color
         />
       )}
       {title && <ThemedText style={textStyle}>{title}</ThemedText>}
@@ -59,11 +59,11 @@ export const CustomButton = ({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: 15, // Increased padding
+    paddingHorizontal: 15, // Increased padding
     alignItems: "center",
     borderWidth: 1,
-    borderRadius: 15
+    borderRadius: 150
   },
   cancelButton: {
     borderBottomWidth: 0,
