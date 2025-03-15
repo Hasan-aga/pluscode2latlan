@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Plus Code Converter",
-    "slug": "pluscode2latlong",
+    "slug": "pluscode2latlan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
