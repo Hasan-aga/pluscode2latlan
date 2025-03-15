@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "pluscode2latlan",
-    "slug": "pluscode2latlan",
+    "name": "Plus Code Converter",
+    "slug": "pluscode2latlong",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#282a36"
       },
-      "package": "com.hiimhasan.pluscode2latlan"
+      "package": "com.hiimhasan.pluscode2latlong"
     },
     "web": {
       "bundler": "metro",
