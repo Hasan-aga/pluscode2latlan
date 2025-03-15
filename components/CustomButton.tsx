@@ -49,7 +49,7 @@ export const CustomButton = ({
         <IconSymbol
           name={icon}
           size={20}
-          color={Colors[colorScheme || "light"].icon} // Updated to use Colors for icon color
+          color={Colors[colorScheme || "light"].icon}
         />
       )}
       {title && <ThemedText style={textStyle}>{title}</ThemedText>}

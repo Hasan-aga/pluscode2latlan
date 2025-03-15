@@ -16,7 +16,9 @@ const MAPPING = {
   "info.circle.fill": "info",
   "location.circle.fill": "location-on",
   "doc.on.clipboard.fill": "content-paste",
-  "checkmark.circle.fill": "check-circle"
+  "checkmark.circle.fill": "check-circle",
+  "clipboard.fill": "content-paste",
+  "map.circle.fill": "map"
 } as Partial<
   Record<
     import("expo-symbols").SymbolViewProps["name"],
