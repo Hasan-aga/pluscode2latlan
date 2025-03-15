@@ -20,9 +20,6 @@ const PlusCodeDecoder = () => {
     longitude: number
   } | null>(null)
   const [error, setError] = useState("")
-  const [isShortResult, setIsShortResult] = useState<boolean | null>(null)
-  const [isValidResult, setIsValidResult] = useState<boolean | null>(null)
-  const [angleCheckResult, setAngleCheckResult] = useState<boolean | null>(null)
 
   const extractLocationInfo = (input: string) => {
     // Split on common delimiters including Arabic comma and normalize whitespace
@@ -70,11 +67,10 @@ const PlusCodeDecoder = () => {
     throw new Error("No valid city found in the location string")
   }
 
-  const handleDecode = async () => {
+  const handleDecode = async (plusCode: string) => {
     try {
       const { plusCode: code, locationParts } = extractLocationInfo(plusCode)
       const isShortCode = !OpenLocationCode.isFull(code)
-      setIsShortResult(isShortCode)
 
       let codeToUse = code
       // If it's a short code and we have location parts, try to find a valid city
@@ -99,21 +95,17 @@ const PlusCodeDecoder = () => {
         longitude: decoded.longitudeCenter
       })
 
-      setIsValidResult(OpenLocationCode.isValid(code))
-      setAngleCheckResult(OpenLocationCode.isValidLongitude(code))
       setError("")
     } catch (err) {
       setError(`Error \n${err}`)
       setCoordinates(null)
-      setIsShortResult(null)
-      setIsValidResult(null)
-      setAngleCheckResult(null)
     }
   }
 
   const handlePaste = async () => {
     const text = await Clipboard.getString()
     setPlusCode(text)
+    handleDecode(text)
   }
 
   const handleCopy = () => {
@@ -163,7 +155,11 @@ const PlusCodeDecoder = () => {
             />
             {plusCode ? (
               <Pressable
-                onPress={() => setPlusCode("")}
+                onPress={() => {
+                  setPlusCode("")
+                  setCoordinates(null) // Clear previous result
+                  setError("") // Clear any error
+                }}
                 style={styles.clearButton}
               >
                 <MaterialIcons
@@ -177,7 +173,13 @@ const PlusCodeDecoder = () => {
 
           <CustomButton
             icon={plusCode ? "checkmark.circle.fill" : "doc.on.clipboard.fill"}
-            onPress={plusCode ? handleDecode : handlePaste}
+            onPress={
+              plusCode
+                ? () => {
+                    handleDecode(plusCode)
+                  }
+                : handlePaste
+            }
           />
         </View>
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
@@ -187,37 +189,21 @@ const PlusCodeDecoder = () => {
           <View style={styles.resultContainer}>
             <View style={styles.resultTextContainer}>
               <ThemedText>Latitude,</ThemedText>
-              <ThemedText>Longitude</ThemedText>
+              <ThemedText>{coordinates.latitude}</ThemedText>
             </View>
             <View style={styles.resultTextContainer}>
-              <ThemedText>{coordinates.latitude}</ThemedText>
+              <ThemedText>Longitude</ThemedText>
               <ThemedText>{coordinates.longitude}</ThemedText>
             </View>
             <View style={{ height: 20 }} />
 
             <View style={styles.buttonGroup}>
-              <CustomButton title="Copy" onPress={handleCopy} />
-              <CustomButton title="Open in Maps" onPress={handleOpenMaps} />
+              <CustomButton icon="clipboard.fill" onPress={handleCopy} />
+              <CustomButton icon="map.circle.fill" onPress={handleOpenMaps} />
             </View>
           </View>
         )}
         <View style={{ height: 50 }} />
-
-        {!isShortResult !== null && (
-          <ThemedText style={styles.result}>
-            Is Short: {isShortResult ? "Yes" : "No"}
-          </ThemedText>
-        )}
-        {!isValidResult !== null && (
-          <ThemedText style={styles.result}>
-            Is Valid: {isValidResult ? "Yes" : "No"}
-          </ThemedText>
-        )}
-        {!angleCheckResult !== null && (
-          <ThemedText style={styles.result}>
-            Angle Check: {angleCheckResult ? "Passed" : "Failed"}
-          </ThemedText>
-        )}
       </ThemedView>
       {coordinates && (
         <MapsModal
@@ -268,7 +254,7 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     flexDirection: "column",
-    alignItems: "flex-start",
+    alignItems: "center",
     marginTop: 20
   },
   resultTextContainer: {
@@ -277,8 +263,8 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignSelf: "flex-end",
+    justifyContent: "center",
+    alignSelf: "center",
     gap: 8
   },
   copyButton: {
