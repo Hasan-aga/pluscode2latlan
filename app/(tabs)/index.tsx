@@ -8,7 +8,15 @@ import { Colors } from "@/constants/Colors"
 import { useColorScheme } from "@/hooks/useColorScheme"
 import { MaterialIcons } from "@expo/vector-icons"
 import React, { useState } from "react"
-import { Clipboard, Pressable, StyleSheet, TextInput, View } from "react-native"
+import {
+  Animated,
+  Clipboard,
+  Easing,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View
+} from "react-native"
 import OpenLocationCode from "../../assets/openlocationlocal"
 import { searchGeonames } from "../../utils/db"
 
@@ -20,6 +28,8 @@ const PlusCodeDecoder = () => {
     longitude: number
   } | null>(null)
   const [error, setError] = useState("")
+  const fadeAnim = useState(new Animated.Value(0))[0]
+  const [spinAnim] = useState(new Animated.Value(0))
 
   const extractLocationInfo = (input: string) => {
     // Split on common delimiters including Arabic comma and normalize whitespace
@@ -67,6 +77,45 @@ const PlusCodeDecoder = () => {
     throw new Error("No valid city found in the location string")
   }
 
+  const fadeIn = () => {
+    // Will change fadeAnim value to 1 in 5 seconds
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true
+    }).start()
+  }
+
+  const fadeOut = (callback?: () => void) => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true
+    }).start(callback) // Add callback support
+  }
+  const spinIn = () => {
+    spinAnim.setValue(0)
+    Animated.timing(spinAnim, {
+      toValue: 1,
+      duration: 300,
+      easing: Easing.linear,
+      useNativeDriver: true
+    }).start()
+  }
+
+  const spinOut = () => {
+    spinAnim.setValue(1)
+    Animated.timing(spinAnim, {
+      toValue: 0,
+      duration: 300,
+      easing: Easing.linear,
+      useNativeDriver: true
+    }).start()
+  }
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"]
+  })
   const handleDecode = async (plusCode: string) => {
     try {
       const { plusCode: code, locationParts } = extractLocationInfo(plusCode)
@@ -94,7 +143,7 @@ const PlusCodeDecoder = () => {
         latitude: decoded.latitudeCenter,
         longitude: decoded.longitudeCenter
       })
-
+      fadeIn()
       setError("")
     } catch (err) {
       setError(`Error \n${err}`)
@@ -157,8 +206,12 @@ const PlusCodeDecoder = () => {
               <Pressable
                 onPress={() => {
                   setPlusCode("")
-                  setCoordinates(null) // Clear previous result
-                  setError("") // Clear any error
+                  fadeOut(() => {
+                    // Wait for animation to complete
+                    setCoordinates(null)
+                    setError("")
+                  })
+                  spinOut()
                 }}
                 style={styles.clearButton}
               >
@@ -170,23 +223,31 @@ const PlusCodeDecoder = () => {
               </Pressable>
             ) : null}
           </View>
-
-          <CustomButton
-            icon={plusCode ? "checkmark.circle.fill" : "doc.on.clipboard.fill"}
-            onPress={
-              plusCode
-                ? () => {
-                    handleDecode(plusCode)
-                  }
-                : handlePaste
-            }
-          />
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
+            <CustomButton
+              icon={
+                plusCode ? "checkmark.circle.fill" : "doc.on.clipboard.fill"
+              }
+              onPress={
+                plusCode
+                  ? () => {
+                      handleDecode(plusCode)
+                    }
+                  : () => {
+                      handlePaste()
+                      spinIn()
+                    }
+              }
+            />
+          </Animated.View>
         </View>
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
         <View style={{ height: 50 }} />
 
         {coordinates && (
-          <View style={styles.resultContainer}>
+          <Animated.View
+            style={[styles.resultContainer, { opacity: fadeAnim }]}
+          >
             <View style={styles.resultTextContainer}>
               <ThemedText>Latitude,</ThemedText>
               <ThemedText>{coordinates.latitude}</ThemedText>
@@ -201,7 +262,7 @@ const PlusCodeDecoder = () => {
               <CustomButton icon="clipboard.fill" onPress={handleCopy} />
               <CustomButton icon="map.circle.fill" onPress={handleOpenMaps} />
             </View>
-          </View>
+          </Animated.View>
         )}
         <View style={{ height: 50 }} />
       </ThemedView>

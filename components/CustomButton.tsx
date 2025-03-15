@@ -13,7 +13,7 @@ import { IconSymbol } from "./ui/IconSymbol"
 interface CustomButtonProps {
   icon?: React.ComponentProps<typeof IconSymbol>["name"]
   onPress: () => void
-  title: string
+  title?: string
   style?: StyleProp<ViewStyle>
   textStyle?: StyleProp<TextStyle>
   variant?: "default" | "cancel"
