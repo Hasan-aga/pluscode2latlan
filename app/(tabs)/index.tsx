@@ -17,8 +17,8 @@ import {
   TextInput,
   View
 } from "react-native"
-import OpenLocationCode from "../../assets/openlocationlocal"
 import { searchGeonames } from "../../utils/db"
+import OpenLocationCode from "../../utils/openlocationlocal"
 
 const PlusCodeDecoder = () => {
   const colorScheme = useColorScheme()
