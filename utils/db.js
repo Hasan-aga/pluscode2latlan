@@ -129,4 +129,52 @@ async function searchGeonames(cityName) {
   }
 }
 
-export { checkDbTables, copyDatabase, searchGeonames }
+async function searchForClosestCity({ latitude, longitude }) {
+  console.log("Opening database at:", DB_PATH)
+
+  // Verify database exists
+  const dbInfo = await FileSystem.getInfoAsync(DB_PATH)
+  if (!dbInfo.exists) {
+    throw new Error("Database file not found")
+  }
+
+  const db = await SQLite.openDatabaseAsync(DB_NAME)
+
+  try {
+    // Verify database connection
+    await db.execAsync("PRAGMA quick_check;")
+
+    // Use parameterized query with proper escaping
+    const result = await db.getFirstAsync(
+      `WITH params AS (
+    SELECT 
+       ? AS given_lat,  -- Replace with your latitude
+        ? AS given_lng -- Replace with your longitude
+    )
+    SELECT 
+        id,  
+        name,  
+        latitude,
+        longitude,
+        (6371 * ACOS(
+            COS(RADIANS((SELECT given_lat FROM params))) * COS(RADIANS(latitude)) *
+            COS(RADIANS(longitude) - RADIANS((SELECT given_lng FROM params))) +
+            SIN(RADIANS((SELECT given_lat FROM params))) * SIN(RADIANS(latitude))
+        )) AS distance_km
+    FROM geonames
+    ORDER BY distance_km
+    LIMIT 1;
+`,
+      [latitude, longitude]
+    )
+
+    return result
+  } catch (error) {
+    console.error("Database error:", error)
+    throw error
+  } finally {
+    await db.closeAsync()
+  }
+}
+
+export { checkDbTables, copyDatabase, searchGeonames, searchForClosestCity }
