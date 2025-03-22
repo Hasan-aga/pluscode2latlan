@@ -17,7 +17,7 @@ import {
   TextInput,
   View
 } from "react-native"
-import { searchGeonames } from "../../utils/db"
+import { searchForClosestCity, searchGeonames } from "../../utils/db"
 import OpenLocationCode from "../../utils/openlocationlocal"
 
 const PlusCodeDecoder = () => {
@@ -26,6 +26,7 @@ const PlusCodeDecoder = () => {
   const [coordinates, setCoordinates] = useState<{
     latitude: number
     longitude: number
+    name?: string
   } | null>(null)
   const [error, setError] = useState("")
   const fadeAnim = useState(new Animated.Value(0))[0]
@@ -139,10 +140,24 @@ const PlusCodeDecoder = () => {
       }
 
       const decoded = OpenLocationCode.decode(codeToUse)
-      setCoordinates({
-        latitude: decoded.latitudeCenter,
-        longitude: decoded.longitudeCenter
-      })
+      try {
+        const { name } = await searchForClosestCity({
+          latitude: decoded.latitudeCenter,
+          longitude: decoded.longitudeCenter
+        })
+        setCoordinates({
+          name,
+          latitude: decoded.latitudeCenter,
+          longitude: decoded.longitudeCenter
+        })
+      } catch (error) {
+        setCoordinates({
+          latitude: decoded.latitudeCenter,
+          longitude: decoded.longitudeCenter
+        })
+        console.error("Error searching for closest city:", error)
+      }
+
       fadeIn()
       setError("")
     } catch (err) {
@@ -248,6 +263,11 @@ const PlusCodeDecoder = () => {
           <Animated.View
             style={[styles.resultContainer, { opacity: fadeAnim }]}
           >
+            {coordinates.name && (
+              <View style={styles.resultTextContainer}>
+                <ThemedText>Near {coordinates.name}</ThemedText>
+              </View>
+            )}
             <View style={styles.resultTextContainer}>
               <ThemedText>Latitude,</ThemedText>
               <ThemedText>{coordinates.latitude}</ThemedText>

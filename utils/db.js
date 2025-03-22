@@ -129,6 +129,20 @@ async function searchGeonames(cityName) {
   }
 }
 
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371 // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
 async function searchForClosestCity({ latitude, longitude }) {
   console.log("Opening database at:", DB_PATH)
 
@@ -144,31 +158,38 @@ async function searchForClosestCity({ latitude, longitude }) {
     // Verify database connection
     await db.execAsync("PRAGMA quick_check;")
 
-    // Use parameterized query with proper escaping
-    const result = await db.getFirstAsync(
-      `WITH params AS (
-    SELECT 
-       ? AS given_lat,  -- Replace with your latitude
-        ? AS given_lng -- Replace with your longitude
-    )
-    SELECT 
-        id,  
-        name,  
-        latitude,
-        longitude,
-        (6371 * ACOS(
-            COS(RADIANS((SELECT given_lat FROM params))) * COS(RADIANS(latitude)) *
-            COS(RADIANS(longitude) - RADIANS((SELECT given_lng FROM params))) +
-            SIN(RADIANS((SELECT given_lat FROM params))) * SIN(RADIANS(latitude))
-        )) AS distance_km
-    FROM geonames
-    ORDER BY distance_km
-    LIMIT 1;
-`,
-      [latitude, longitude]
+    // Fetch potential nearby points (optional bounding box)
+    const results = await db.getAllAsync(
+      `SELECT id, name, latitude, longitude 
+     FROM geonames
+     WHERE latitude BETWEEN ? - 0.5 AND ? + 0.5
+       AND longitude BETWEEN ? - 0.5 AND ? + 0.5`,
+      [latitude, latitude, longitude, longitude]
     )
 
-    return result
+    if (results.length === 0) {
+      return null // Or handle no results
+    }
+    // Calculate distances and find closest
+    let closest = null
+    let minDistance = Infinity
+
+    for (const row of results) {
+      const distance = haversine(
+        latitude,
+        longitude,
+        row.latitude,
+        row.longitude
+      )
+
+      if (distance < minDistance) {
+        minDistance = distance
+        closest = { ...row, distance_km: distance }
+      }
+    }
+    console.log("Closest city:", closest)
+
+    return closest
   } catch (error) {
     console.error("Database error:", error)
     throw error
@@ -177,4 +198,4 @@ async function searchForClosestCity({ latitude, longitude }) {
   }
 }
 
-export { checkDbTables, copyDatabase, searchGeonames, searchForClosestCity }
+export { checkDbTables, copyDatabase, searchForClosestCity, searchGeonames }
