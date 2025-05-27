@@ -144,6 +144,16 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 async function searchForClosestCity({ latitude, longitude }) {
+  // Validate input
+  if (
+    typeof latitude !== "number" ||
+    typeof longitude !== "number" ||
+    isNaN(latitude) ||
+    isNaN(longitude)
+  ) {
+    throw new Error("Invalid input")
+  }
+
   console.log("Opening database at:", DB_PATH)
 
   // Verify database exists

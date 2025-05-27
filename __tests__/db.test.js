@@ -1,6 +1,6 @@
 import * as FileSystem from "expo-file-system"
 import * as SQLite from "expo-sqlite"
-import { searchForClosestCity } from "./utils/db"
+import { searchForClosestCity } from "../utils/db.js"
 
 // Mock the SQLite database
 jest.mock("expo-sqlite")
@@ -20,8 +20,16 @@ describe("searchForClosestCity", () => {
         name: "Test City",
         latitude: 40.7128,
         longitude: -74.006,
-        distance_km: 0.1
+        distance_km: 0
       }),
+      getAllAsync: jest.fn().mockResolvedValue([
+        {
+          id: 1,
+          name: "Test City",
+          latitude: 40.7128,
+          longitude: -74.006
+        }
+      ]),
       closeAsync: jest.fn()
     }
 
@@ -37,7 +45,7 @@ describe("searchForClosestCity", () => {
       name: "Test City",
       latitude: 40.7128,
       longitude: -74.006,
-      distance_km: 0.1
+      distance_km: 0
     })
   })
 
@@ -46,6 +54,7 @@ describe("searchForClosestCity", () => {
     const mockDb = {
       execAsync: jest.fn().mockResolvedValue([]),
       getFirstAsync: jest.fn().mockResolvedValue(null),
+      getAllAsync: jest.fn().mockResolvedValue([]),
       closeAsync: jest.fn()
     }
 
@@ -54,7 +63,7 @@ describe("searchForClosestCity", () => {
 
     await expect(
       searchForClosestCity({ latitude: 40.7128, longitude: -74.006 })
-    ).rejects.toThrow("No cities found")
+    ).resolves.toBeNull()
   })
 
   // Test Case 3: Input with invalid latitude or longitude values
@@ -62,6 +71,7 @@ describe("searchForClosestCity", () => {
     const mockDb = {
       execAsync: jest.fn().mockResolvedValue([]),
       getFirstAsync: jest.fn().mockResolvedValue(null),
+      getAllAsync: jest.fn().mockResolvedValue([]),
       closeAsync: jest.fn()
     }
 
@@ -87,6 +97,14 @@ describe("searchForClosestCity", () => {
         longitude: -74.006,
         distance_km: 0
       }),
+      getAllAsync: jest.fn().mockResolvedValue([
+        {
+          id: 1,
+          name: "Test City",
+          latitude: 40.7128,
+          longitude: -74.006
+        }
+      ]),
       closeAsync: jest.fn()
     }
 

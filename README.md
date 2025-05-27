@@ -36,3 +36,21 @@ zip and decompress db
 prevent text input text flowing under x mark
 implement convert lat lng to plus code.
 improve ui ux
+
+## Running Tests
+
+To run the tests after a fresh install:
+
+1. Install dependencies (if not already done):
+
+   ```bash
+   npm install
+   ```
+
+2. Run the tests:
+
+   ```bash
+   npm test
+   ```
+
+This will execute all test files in the project.
